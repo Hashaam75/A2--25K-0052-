@@ -1,1 +1,1389 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Abstract Class 1: Forces every entity to implement displayDetails()
+class IDisplayable {
+public:
+    virtual void displayDetails() const = 0;
+    virtual ~IDisplayable() {}
+};
+
+// Abstract Class 2: Any searchable entity must implement matchesFilter()
+class ISearchable {
+public:
+    virtual bool matchesFilter(const string& key, const string& value) const = 0;
+    virtual ~ISearchable() {}
+};
+
+// Abstract Class 3: Admin-manageable entities must implement approve/reject
+class IApprovable {
+public:
+    virtual void approve() = 0;
+    virtual void reject(const char* reason) = 0;
+    virtual bool isApproved() const = 0;
+    virtual ~IApprovable() {}
+};
+
+// Abstract Class 4: Any entity that can send/receive messages
+class IMessagable {
+public:
+    virtual void sendMessage(const string& to, const string& msg) = 0;
+    virtual void readMessages() const = 0;
+    virtual ~IMessagable() {}
+};
+
+
+
+class Location : public IDisplayable {
+private:
+    string city;
+    string province;
+    string country;
+    double latitude;
+    double longitude;
+
+public:
+    // Default constructor
+    Location() : city("Unknown"), province("Unknown"), country("Pakistan"),
+                 latitude(0.0), longitude(0.0) {}
+
+    // Parameterized constructor 
+    Location(const string& city, const string& province,
+             const string& country = "Pakistan",
+             double lat = 0.0, double lon = 0.0)
+        : city(city), province(province), country(country),
+          latitude(lat), longitude(lon) {}
+
+    // Copy constructor 
+    Location(const Location& other)
+        : city(other.city), province(other.province), country(other.country),
+          latitude(other.latitude), longitude(other.longitude) {}
+
+    // Getters
+    string getCity()      const { return city; }
+    string getProvince()  const { return province; }
+    string getCountry()   const { return country; }
+    double getLatitude()  const { return latitude; }
+    double getLongitude() const { return longitude; }
+
+    // Setters
+    void setCity(const string& c)     { city = c; }
+    void setProvince(const string& p) { province = p; }
+
+    // Member functions
+    void displayDetails() const override {
+        cout << city << ", " << province << ", " << country;
+    }
+
+    string toString() const {
+        return city + ", " + province + ", " + country;
+    }
+
+    bool isSameCity(const Location& other) const {
+        return city == other.city;
+    }
+
+    void updateCoordinates(double lat, double lon) {
+        latitude = lat;
+        longitude = lon;
+    }
+
+    // Operator overloading: == compares city + province
+    bool operator==(const Location& other) const {
+        return city == other.city && province == other.province;
+    }
+};
+
+
+class Message : public IDisplayable {
+private:
+    string senderID;
+    string receiverID;
+    string content;
+    string timestamp;
+    bool   isRead;
+
+public:
+    // Default constructor 
+    Message() : senderID(""), receiverID(""), content(""),
+                timestamp(""), isRead(false) {}
+
+    // Parameterized constructor 
+    Message(const string& from, const string& to,
+            const string& text, const string& time)
+        : senderID(from), receiverID(to), content(text),
+          timestamp(time), isRead(false) {}
+
+    // Copy constructor 
+    Message(const Message& m)
+        : senderID(m.senderID), receiverID(m.receiverID),
+          content(m.content), timestamp(m.timestamp), isRead(m.isRead) {}
+
+    // Getters
+    string getSenderID()   const { return senderID; }
+    string getReceiverID() const { return receiverID; }
+    string getContent()    const { return content; }
+    string getTimestamp()  const { return timestamp; }
+    bool   getIsRead()     const { return isRead; }
+
+    // Setters
+    void markRead() { isRead = true; }
+
+    void displayDetails() const override {
+        cout << "[" << timestamp << "] From: " << senderID
+             << " -> To: " << receiverID
+             << " | " << (isRead ? "READ" : "UNREAD") << "\n"
+             << "  \"" << content << "\"\n";
+    }
+
+    bool operator==(const Message& other) const {
+        return senderID == other.senderID &&
+               receiverID == other.receiverID &&
+               timestamp == other.timestamp;
+    }
+};
+
+//  VEHICLE — Abstract Base Class
+
+class Vehicle : public IDisplayable, public ISearchable {
+protected:
+    string brand;
+    string model;
+    int    year;
+    double mileage;
+    string fuelType;
+    string color;
+
+    static int totalVehicles;
+
+public:
+    // Default constructor
+    Vehicle() : brand("Unknown"), model("Unknown"), year(2020),
+                mileage(0), fuelType("Petrol"), color("White") {
+        totalVehicles++;
+    }
+
+    // Parameterized constructor 
+    Vehicle(const string& brand, const string& model, int year,
+            double mileage, const string& fuelType, const string& color)
+        : brand(brand), model(model), year(year),
+          mileage(mileage), fuelType(fuelType), color(color) {
+        totalVehicles++;
+    }
+
+    // Copy constructor 
+    Vehicle(const Vehicle& v)
+        : brand(v.brand), model(v.model), year(v.year),
+          mileage(v.mileage), fuelType(v.fuelType), color(v.color) {
+        totalVehicles++;
+    }
+
+    virtual ~Vehicle() {}
+
+    // Pure virtual 
+    virtual string getType() const = 0;
+    virtual void displayDetails() const override = 0;
+
+    // Getters
+    string getBrand()    const { return brand; }
+    string getModel()    const { return model; }
+    int    getYear()     const { return year; }
+    double getMileage()  const { return mileage; }
+    string getFuelType() const { return fuelType; }
+    string getColor()    const { return color; }
+
+    // Setters
+    void setBrand(const string& b)    { brand = b; }
+    void setModel(const string& m)    { model = m; }
+    void setYear(int y)               { year = y; }
+    void setMileage(double m)         { mileage = m; }
+    void setFuelType(const string& f) { fuelType = f; }
+    void setColor(const string& c)    { color = c; }
+
+    // Static member function 
+    static int getTotalVehicles() { return totalVehicles; }
+
+    // ISearchable 
+    bool matchesFilter(const string& key, const string& value) const override {
+        if (key == "brand") return brand == value;
+        if (key == "model") return model == value;
+        if (key == "fuel")  return fuelType == value;
+        if (key == "color") return color == value;
+        if (key == "year")  return to_string(year) == value;
+        return false;
+    }
+
+    // Operator overloading
+    bool operator>(const Vehicle& other) const { return year > other.year; }
+    bool operator==(const Vehicle& other) const {
+        return brand == other.brand && model == other.model && year == other.year;
+    }
+};
+
+int Vehicle::totalVehicles = 0;
+
+
+//  CAR — Derived from Vehicle (Inheritance Relationship 1)
+
+class Car : public Vehicle {
+private:
+    int    numDoors;
+    string transmission;   
+    string bodyType;     
+    double engineCC;
+    bool   isAC;
+
+public:
+    // Default constructor 
+    Car() : Vehicle(), numDoors(4), transmission("Manual"),
+            bodyType("Sedan"), engineCC(1300), isAC(true) {}
+
+    // Parameterized constructor 
+    Car(const string& brand, const string& model, int year,
+        double mileage, const string& fuel, const string& color,
+        int doors, const string& trans, const string& body,
+        double cc, bool ac)
+        : Vehicle(brand, model, year, mileage, fuel, color),
+          numDoors(doors), transmission(trans),
+          bodyType(body), engineCC(cc), isAC(ac) {}
+
+    // Copy constructor — used during deep copy in Listing copy constructor
+    Car(const Car& c)
+        : Vehicle(c), numDoors(c.numDoors), transmission(c.transmission),
+          bodyType(c.bodyType), engineCC(c.engineCC), isAC(c.isAC) {}
+
+    string getType() const override { return "Car"; }
+
+    // Overrides Vehicle::displayDetails() — polymorphism
+    void displayDetails() const override {
+        cout << "[CAR] " << year << " " << brand << " " << model
+             << " | " << bodyType << " | " << transmission
+             << " | " << engineCC << "cc | Doors: " << numDoors
+             << " | AC: " << (isAC ? "Yes" : "No")
+             << " | Fuel: " << fuelType
+             << " | Mileage: " << mileage << " km"
+             << " | Color: " << color << "\n";
+    }
+
+    // Getters
+    int    getNumDoors()     const { return numDoors; }
+    string getTransmission() const { return transmission; }
+    string getBodyType()     const { return bodyType; }
+    double getEngineCC()     const { return engineCC; }
+    bool   getIsAC()         const { return isAC; }
+
+    // Setters
+    void setTransmission(const string& t) { transmission = t; }
+    void setBodyType(const string& b)     { bodyType = b; }
+    void setEngineCC(double cc)           { engineCC = cc; }
+
+    double estimateAnnualTax() const {
+        if (engineCC <= 1000) return 10000;
+        if (engineCC <= 1300) return 15000;
+        if (engineCC <= 1600) return 25000;
+        return 50000;
+    }
+
+    bool matchesFilter(const string& key, const string& value) const override {
+        if (key == "body")         return bodyType == value;
+        if (key == "transmission") return transmission == value;
+        return Vehicle::matchesFilter(key, value);
+    }
+};
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  BIKE — Derived from Vehicle
+// ══════════════════════════════════════════════════════════════════════════════
+class Bike : public Vehicle {
+private:
+    double engineCC;
+    string bikeType;    
+    bool   hasCargoBox;
+    int    numGears;
+    string coolingType; 
+
+public:
+    // Default constructor
+    Bike() : Vehicle(), engineCC(125), bikeType("Standard"),
+             hasCargoBox(false), numGears(5), coolingType("Air") {}
+
+    // Parameterized constructor
+    Bike(const string& brand, const string& model, int year,
+         double mileage, const string& fuel, const string& color,
+         double cc, const string& type, bool cargo, int gears, const string& cooling)
+        : Vehicle(brand, model, year, mileage, fuel, color),
+          engineCC(cc), bikeType(type), hasCargoBox(cargo),
+          numGears(gears), coolingType(cooling) {}
+
+    // Copy constructor
+    Bike(const Bike& b)
+        : Vehicle(b), engineCC(b.engineCC), bikeType(b.bikeType),
+          hasCargoBox(b.hasCargoBox), numGears(b.numGears), coolingType(b.coolingType) {}
+
+    string getType() const override { return "Bike"; }
+
+    void displayDetails() const override {
+        cout << "[BIKE] " << year << " " << brand << " " << model
+             << " | " << bikeType << " | " << engineCC << "cc"
+             << " | Gears: " << numGears
+             << " | Cooling: " << coolingType
+             << " | CargoBox: " << (hasCargoBox ? "Yes" : "No")
+             << " | Fuel: " << fuelType
+             << " | Mileage: " << mileage << " km\n";
+    }
+
+    // Getters
+    double getEngineCC() const { return engineCC; }
+    string getBikeType() const { return bikeType; }
+    bool   getHasCargo() const { return hasCargoBox; }
+
+    // Setters
+    void setBikeType(const string& t) { bikeType = t; }
+
+    double fuelEfficiencyRating() const {
+        return (engineCC <= 125) ? 5.0 : (engineCC <= 250) ? 4.0 : 3.0;
+    }
+
+    bool matchesFilter(const string& key, const string& value) const override {
+        if (key == "bikeType") return bikeType == value;
+        return Vehicle::matchesFilter(key, value);
+    }
+};
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  TRUCK — Derived from Vehicle (Inheritance Relationship 3)
+// ══════════════════════════════════════════════════════════════════════════════
+class Truck : public Vehicle {
+private:
+    double payloadCapacity;    // tons
+    int    numAxles;
+    string truckCategory;      // Mini / Medium / Heavy
+    bool   hasRefrigeration;
+    double engineDisplacement; // Liters
+
+public:
+    // Default constructor
+    Truck() : Vehicle(), payloadCapacity(1.0), numAxles(2),
+              truckCategory("Mini"), hasRefrigeration(false), engineDisplacement(2.0) {}
+
+    // Parameterized constructor
+    Truck(const string& brand, const string& model, int year,
+          double mileage, const string& fuel, const string& color,
+          double payload, int axles, const string& cat, bool fridge, double disp)
+        : Vehicle(brand, model, year, mileage, fuel, color),
+          payloadCapacity(payload), numAxles(axles),
+          truckCategory(cat), hasRefrigeration(fridge), engineDisplacement(disp) {}
+
+    // Copy constructor
+    Truck(const Truck& t)
+        : Vehicle(t), payloadCapacity(t.payloadCapacity), numAxles(t.numAxles),
+          truckCategory(t.truckCategory), hasRefrigeration(t.hasRefrigeration),
+          engineDisplacement(t.engineDisplacement) {}
+
+    string getType() const override { return "Truck"; }
+
+    void displayDetails() const override {
+        cout << "[TRUCK] " << year << " " << brand << " " << model
+             << " | " << truckCategory << " | Payload: " << payloadCapacity << "T"
+             << " | Axles: " << numAxles
+             << " | Engine: " << engineDisplacement << "L"
+             << " | Refrigerated: " << (hasRefrigeration ? "Yes" : "No") << "\n";
+    }
+
+    // Getters
+    double getPayload()       const { return payloadCapacity; }
+    string getTruckCategory() const { return truckCategory; }
+
+    // Setters
+    void setTruckCategory(const string& c) { truckCategory = c; }
+
+    double calculateFreightRate() const {
+        return payloadCapacity * 500.0; // Rs per trip estimate
+    }
+
+    bool matchesFilter(const string& key, const string& value) const override {
+        if (key == "category") return truckCategory == value;
+        return Vehicle::matchesFilter(key, value);
+    }
+};
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  USER — Abstract Base Class
+//  Inheritance: User -> Buyer, Seller, Admin
+// ══════════════════════════════════════════════════════════════════════════════
+class User : public IDisplayable, public IMessagable {
+protected:
+    string userID;
+    string name;
+    string email;
+    string phone;
+    string passwordHash;
+    bool   isActive;
+
+    // Array of objects — inbox messages
+    static const int MAX_MESSAGES = 50;
+    Message inbox[MAX_MESSAGES];
+    int     messageCount;
+
+    // static: shared across ALL user instances — platform-wide count
+    // Justification: total registered users is a global metric, not per-user
+    static int totalUsers;
+
+public:
+    // Default constructor — used when user signs up with minimal info
+    User() : userID("U000"), name("Unknown"), email(""),
+             phone(""), passwordHash(""), isActive(true), messageCount(0) {
+        totalUsers++;
+    }
+
+    // Parameterized constructor — used when full profile is available at registration
+    User(const string& id, const string& name, const string& email,
+         const string& phone, const string& pass)
+        : userID(id), name(name), email(email),
+          phone(phone), passwordHash(pass), isActive(true), messageCount(0) {
+        totalUsers++;
+    }
+
+    // Copy constructor — used when cloning a user profile
+    User(const User& u)
+        : userID(u.userID + "_copy"), name(u.name), email(u.email),
+          phone(u.phone), passwordHash(u.passwordHash),
+          isActive(u.isActive), messageCount(u.messageCount) {
+        for (int i = 0; i < messageCount; i++) inbox[i] = u.inbox[i];
+        totalUsers++;
+    }
+
+    virtual ~User() {}
+
+    // Pure virtual — each role must identify itself
+    virtual string getRole() const = 0;
+
+    // Getters
+    string getUserID()   const { return userID; }
+    string getName()     const { return name; }
+    string getEmail()    const { return email; }
+    string getPhone()    const { return phone; }
+    bool   getIsActive() const { return isActive; }
+
+    // Setters
+    void setName(const string& n)  { name = n; }
+    void setEmail(const string& e) { email = e; }
+    void setPhone(const string& p) { phone = p; }
+    void deactivate() { isActive = false; }
+    void activate()   { isActive = true; }
+
+    static int getTotalUsers() { return totalUsers; }
+
+    // IMessagable implementation
+    void sendMessage(const string& to, const string& msg) override {
+        cout << "[MSG] " << name << " -> " << to << ": " << msg << "\n";
+    }
+
+    void readMessages() const override {
+        cout << "=== Inbox for " << name << " (" << messageCount << " messages) ===\n";
+        for (int i = 0; i < messageCount; i++) inbox[i].displayDetails();
+    }
+
+    void receiveMessage(const Message& m) {
+        if (messageCount < MAX_MESSAGES)
+            inbox[messageCount++] = m;
+        else
+            cout << "[WARN] Inbox full for " << name << "\n";
+    }
+
+    bool authenticate(const string& pass) const {
+        return passwordHash == pass;
+    }
+
+    void displayDetails() const override {
+        cout << "[USER:" << getRole() << "] ID:" << userID
+             << " | " << name << " | " << email
+             << " | Active:" << (isActive ? "Yes" : "No") << "\n";
+    }
+};
+
+int User::totalUsers = 0;
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  BUYER — Derived from User (Inheritance Relationship 4)
+// ══════════════════════════════════════════════════════════════════════════════
+class Buyer : public User {
+private:
+    string preferredBrand;
+    double maxBudget;
+    string preferredCity;
+    bool   wantsFinancing;
+
+    // Array of objects: saved favourite listing IDs
+    static const int MAX_FAVS = 20;
+    string favourites[MAX_FAVS];
+    int    favCount;
+
+public:
+    // Default constructor — buyer signs up without specifying preferences yet
+    Buyer() : User(), preferredBrand("Any"), maxBudget(0),
+              preferredCity("Any"), wantsFinancing(false), favCount(0) {}
+
+    // Parameterized constructor — budget and city known at registration
+    Buyer(const string& id, const string& name, const string& email,
+          const string& phone, const string& pass,
+          double budget, const string& city)
+        : User(id, name, email, phone, pass),
+          preferredBrand("Any"), maxBudget(budget),
+          preferredCity(city), wantsFinancing(false), favCount(0) {}
+
+    // Copy constructor — used when cloning a buyer profile
+    Buyer(const Buyer& b)
+        : User(b), preferredBrand(b.preferredBrand), maxBudget(b.maxBudget),
+          preferredCity(b.preferredCity), wantsFinancing(b.wantsFinancing),
+          favCount(b.favCount) {
+        for (int i = 0; i < favCount; i++) favourites[i] = b.favourites[i];
+    }
+
+    string getRole() const override { return "Buyer"; }
+
+    // Getters
+    double getMaxBudget()     const { return maxBudget; }
+    string getPreferredCity() const { return preferredCity; }
+    int    getFavCount()      const { return favCount; }
+
+    // Setters
+    void setMaxBudget(double b)             { maxBudget = b; }
+    void setPreferredBrand(const string& b) { preferredBrand = b; }
+    void setWantsFinancing(bool w)          { wantsFinancing = w; }
+
+    void saveFavourite(const string& listingID) {
+        for (int i = 0; i < favCount; i++)
+            if (favourites[i] == listingID) {
+                cout << "[INFO] Already in favourites.\n"; return;
+            }
+        if (favCount < MAX_FAVS) {
+            favourites[favCount++] = listingID;
+            cout << "[OK] Listing " << listingID << " saved to favourites.\n";
+        }
+    }
+
+    void removeFavourite(const string& listingID) {
+        for (int i = 0; i < favCount; i++) {
+            if (favourites[i] == listingID) {
+                for (int j = i; j < favCount - 1; j++)
+                    favourites[j] = favourites[j + 1];
+                favCount--;
+                cout << "[OK] Removed from favourites.\n";
+                return;
+            }
+        }
+        cout << "[ERR] Not found in favourites.\n";
+    }
+
+    void viewFavourites() const {
+        cout << "=== Favourites for " << name << " ===\n";
+        for (int i = 0; i < favCount; i++)
+            cout << "  " << (i + 1) << ". " << favourites[i] << "\n";
+    }
+
+    void displayDetails() const override {
+        User::displayDetails();
+        cout << "  Budget: Rs " << maxBudget
+             << " | City: " << preferredCity
+             << " | Favs: " << favCount << "\n";
+    }
+
+    // Friend function declaration
+    // Justification: canAfford() needs read access to private maxBudget
+    // without exposing a setter — friend keeps it controlled and read-only
+    friend bool canAfford(const Buyer& buyer, double price);
+};
+
+// Friend Function 1: Checks if buyer's budget covers the asking price
+bool canAfford(const Buyer& buyer, double price) {
+    return buyer.maxBudget >= price;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SELLER — Derived from User (Inheritance Relationship 5)
+// ══════════════════════════════════════════════════════════════════════════════
+class Seller : public User {
+private:
+    string shopName;
+    bool   isVerified;
+    int    totalListings;
+    double averageRating;
+    string cnicNumber;   // never changes after registration
+
+public:
+    // Default constructor — individual seller with no shop
+    Seller() : User(), shopName("Individual"), isVerified(false),
+               totalListings(0), averageRating(0.0), cnicNumber("00000-0000000-0") {}
+
+    // Parameterized constructor — shop name and CNIC required at registration
+    Seller(const string& id, const string& name, const string& email,
+           const string& phone, const string& pass,
+           const string& shop, const string& cnic)
+        : User(id, name, email, phone, pass),
+          shopName(shop), isVerified(false), totalListings(0),
+          averageRating(0.0), cnicNumber(cnic) {}
+
+    // Copy constructor
+    Seller(const Seller& s)
+        : User(s), shopName(s.shopName), isVerified(s.isVerified),
+          totalListings(s.totalListings), averageRating(s.averageRating),
+          cnicNumber(s.cnicNumber) {}
+
+    string getRole() const override { return "Seller"; }
+
+    // Getters
+    string getShopName()      const { return shopName; }
+    bool   getIsVerified()    const { return isVerified; }
+    int    getTotalListings() const { return totalListings; }
+    double getAvgRating()     const { return averageRating; }
+    string getCNIC()          const { return cnicNumber; }
+
+    // Setters
+    void verify()             { isVerified = true; }
+    void incrementListings()  { totalListings++; }
+    void decrementListings()  { if (totalListings > 0) totalListings--; }
+
+    void updateRating(double newRating) {
+        averageRating = (averageRating == 0.0) ? newRating
+                                               : (averageRating + newRating) / 2.0;
+    }
+
+    void displayDetails() const override {
+        User::displayDetails();
+        cout << "  Shop: " << shopName
+             << " | Verified: " << (isVerified ? "Yes" : "No")
+             << " | Listings: " << totalListings
+             << " | Rating: " << averageRating << "/5\n";
+    }
+
+    // Friend function declaration
+    // Justification: admin CNIC verification needs private cnicNumber
+    // without adding a public getter that anyone could call
+    friend bool verifyCNIC(const Seller& s, const string& cnic);
+};
+
+// Friend Function 2: Admin CNIC verification
+bool verifyCNIC(const Seller& s, const string& cnic) {
+    return s.cnicNumber == cnic;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ADMIN — Derived from User (Inheritance Relationship 6)
+// ══════════════════════════════════════════════════════════════════════════════
+class Admin : public User {
+private:
+    string adminLevel;   // "SuperAdmin" / "Moderator"
+    int    casesHandled;
+    bool   canBanUsers;
+    string department;
+    string adminCode;    // internal secret code
+
+public:
+    // Default constructor
+    Admin() : User(), adminLevel("Moderator"), casesHandled(0),
+              canBanUsers(false), department("General"), adminCode("0000") {}
+
+    // Parameterized constructor — level and department known at creation
+    Admin(const string& id, const string& name, const string& email,
+          const string& phone, const string& pass,
+          const string& level, const string& dept, const string& code)
+        : User(id, name, email, phone, pass),
+          adminLevel(level), casesHandled(0),
+          canBanUsers(level == "SuperAdmin"),
+          department(dept), adminCode(code) {}
+
+    string getRole() const override { return "Admin"; }
+
+    // Getters
+    string getAdminLevel()   const { return adminLevel; }
+    int    getCasesHandled() const { return casesHandled; }
+    string getDepartment()   const { return department; }
+
+    void handleCase() { casesHandled++; }
+
+    void banUser(User& u) {
+        if (canBanUsers) {
+            u.deactivate();
+            cout << "[ADMIN] " << name << " banned: " << u.getName() << "\n";
+            handleCase();
+        } else {
+            cout << "[DENIED] Insufficient admin level.\n";
+        }
+    }
+
+    void unbanUser(User& u) {
+        if (canBanUsers) {
+            u.activate();
+            cout << "[ADMIN] " << name << " unbanned: " << u.getName() << "\n";
+        }
+    }
+
+    void promoteToVerified(Seller& s) {
+        s.verify();
+        cout << "[ADMIN] Seller " << s.getName() << " is now verified.\n";
+        handleCase();
+    }
+
+    void displayDetails() const override {
+        User::displayDetails();
+        cout << "  Level: " << adminLevel
+             << " | Dept: " << department
+             << " | Cases: " << casesHandled
+             << " | CanBan: " << (canBanUsers ? "Yes" : "No") << "\n";
+    }
+
+    // Friend function declaration
+    // Justification: internal system needs to validate admin code
+    // without exposing it publicly
+    friend bool validateAdminCode(const Admin& a, const string& code);
+};
+
+// Friend Function 3: Validate admin secret code
+bool validateAdminCode(const Admin& a, const string& code) {
+    return a.adminCode == code;
+}
+
+
+class Listing : public IDisplayable, public IApprovable, public ISearchable {
+private:
+    string   listingID;
+    double   askingPrice;
+    string   description;
+    bool     approved;
+    string   rejectionReason;
+    string   sellerID;      
+
+    Vehicle* vehicle;       
+    Location location;      
+
+    
+    static int totalListings;
+
+   
+    static const double PLATFORM_FEE;
+
+public:
+    // Default constructor
+    Listing() : listingID("L000"), askingPrice(0), description(""),
+                approved(false), rejectionReason(""), sellerID(""),
+                vehicle(nullptr), location() {
+        totalListings++;
+    }
+
+    // Parameterized constructor
+    Listing(const string& id, double price, const string& desc,
+            const string& sellerID, Vehicle* v, const Location& loc)
+        : listingID(id), askingPrice(price), description(desc),
+          approved(false), rejectionReason(""), sellerID(sellerID),
+          vehicle(v), location(loc) {
+        totalListings++;
+    }
+
+    // Copy constructor 
+    Listing(const Listing& l)
+        : listingID(l.listingID + "_copy"), askingPrice(l.askingPrice),
+          description(l.description), approved(false),
+          rejectionReason(""), sellerID(l.sellerID),
+          vehicle(nullptr), location(l.location) {
+        if (l.vehicle) {
+            if (l.vehicle->getType() == "Car")
+                vehicle = new Car(*dynamic_cast<Car*>(l.vehicle));
+            else if (l.vehicle->getType() == "Bike")
+                vehicle = new Bike(*dynamic_cast<Bike*>(l.vehicle));
+            else if (l.vehicle->getType() == "Truck")
+                vehicle = new Truck(*dynamic_cast<Truck*>(l.vehicle));
+        }
+        totalListings++;
+    }
+
+    ~Listing() {
+        delete vehicle; 
+    }
+
+    
+    void approve() override {
+        approved = true;
+        rejectionReason = "";
+        cout << "[APPROVED] Listing " << listingID << "\n";
+    }
+
+    void reject(const char* reason) override {
+        approved = false;
+        rejectionReason = reason;
+        cout << "[REJECTED] Listing " << listingID << ": " << reason << "\n";
+    }
+
+    bool isApproved() const override { return approved; }
+
+    // Getters
+    string   getListingID()   const { return listingID; }
+    double   getAskingPrice() const { return askingPrice; }
+    string   getDescription() const { return description; }
+    string   getSellerID()    const { return sellerID; }
+    Vehicle* getVehicle()     const { return vehicle; }
+    Location getLocation()    const { return location; }
+
+    // Setters
+    void setAskingPrice(double p)         { askingPrice = p; }
+    void setDescription(const string& d)  { description = d; }
+    void setLocation(const Location& loc) { location = loc; }
+
+    static int    getTotalListings() { return totalListings; }
+    static double getPlatformFee()   { return PLATFORM_FEE; }
+
+    // ISearchable — delegates to embedded vehicle
+    bool matchesFilter(const string& key, const string& value) const override {
+        if (key == "city") return location.getCity() == value;
+        if (key == "price") {
+            try { return askingPrice <= stod(value); }
+            catch (...) { return false; }
+        }
+        if (vehicle) return vehicle->matchesFilter(key, value);
+        return false;
+    }
+
+    void displayDetails() const override {
+        cout << "\n========================================\n";
+        cout << "Listing ID : " << listingID << "\n";
+        cout << "Price      : Rs " << askingPrice << "\n";
+        cout << "Status     : " << (approved ? "APPROVED" : "PENDING/REJECTED") << "\n";
+        cout << "Location   : "; location.displayDetails(); cout << "\n";
+        cout << "Seller ID  : " << sellerID << "\n";
+        cout << "Description: " << description << "\n";
+        if (vehicle) vehicle->displayDetails();
+        cout << "Platform Fee: Rs " << PLATFORM_FEE << "\n";
+        cout << "========================================\n";
+    }
+
+    // Operator overloading
+    bool operator<(const Listing& other) const { return askingPrice < other.askingPrice; }
+    bool operator==(const Listing& other) const { return listingID == other.listingID; }
+
+    // Operator +:
+    Listing operator+(const string& extraDesc) const {
+        Listing copy(*this);
+        copy.description += " | " + extraDesc;
+        return copy;
+    }
+};
+
+int    Listing::totalListings = 0;
+const double Listing::PLATFORM_FEE = 500.0;
+
+
+//  AGGREGATION: references Buyer and Seller by ID (they exist independently)
+
+class Review : public IDisplayable {
+private:
+    string reviewID;
+    string buyerID;
+    string sellerID;
+    int    rating;          
+    string comment;
+    string datePosted;
+    bool   isVerifiedPurchase;
+
+public:
+    // Default constructor 
+    Review() : reviewID("R000"), buyerID(""), sellerID(""),
+               rating(0), comment(""), datePosted(""), isVerifiedPurchase(false) {}
+
+    // Parameterized constructor
+    Review(const string& id, const string& buyer, const string& seller,
+           int rating, const string& comment, const string& date, bool verified)
+        : reviewID(id), buyerID(buyer), sellerID(seller),
+          rating(rating), comment(comment), datePosted(date),
+          isVerifiedPurchase(verified) {}
+
+    // Copy constructor
+    Review(const Review& r)
+        : reviewID(r.reviewID), buyerID(r.buyerID), sellerID(r.sellerID),
+          rating(r.rating), comment(r.comment), datePosted(r.datePosted),
+          isVerifiedPurchase(r.isVerifiedPurchase) {}
+
+    // Getters
+    string getReviewID() const { return reviewID; }
+    string getBuyerID()  const { return buyerID; }
+    string getSellerID() const { return sellerID; }
+    int    getRating()   const { return rating; }
+    string getComment()  const { return comment; }
+
+    // Setters
+    void setComment(const string& c) { if (!c.empty()) comment = c; }
+
+    bool isPositive() const { return rating >= 4; }
+    bool isNegative() const { return rating <= 2; }
+
+    string getRatingStars() const {
+        string stars = "";
+        for (int i = 0; i < rating; i++) stars += "*";
+        return stars;
+    }
+
+    void displayDetails() const override {
+        cout << "[Review " << reviewID << "] "
+             << getRatingStars() << " (" << rating << "/5)\n"
+             << "  Buyer: " << buyerID << " -> Seller: " << sellerID << "\n"
+             << "  \"" << comment << "\"\n"
+             << "  Date: " << datePosted
+             << " | Verified: " << (isVerifiedPurchase ? "Yes" : "No") << "\n";
+    }
+
+    // Operator overloading
+    bool operator>(const Review& other) const  { return rating > other.rating; }
+    bool operator==(const Review& other) const { return reviewID == other.reviewID; }
+};
+
+
+//  MARKETPLACE — Central Registry
+//  COMPOSITION:  owns all Listing objects (deletes them in destructor)
+//  AGGREGATION:  holds User* pointers (users exist independently, not deleted here)
+class Marketplace {
+private:
+    string platformName;
+    string version;
+    string baseURL;
+
+    static const int MAX_LISTINGS = 100;
+    static const int MAX_USERS    = 200;
+    static const int MAX_REVIEWS  = 300;
+
+    Listing* listings[MAX_LISTINGS]; 
+    int      listingCount;
+
+    User*    users[MAX_USERS];      
+    int      userCount;
+
+    Review   reviews[MAX_REVIEWS];   
+    int      reviewCount;
+
+    
+    static int totalSearches;
+
+public:
+    // Default constructor
+    Marketplace()
+        : platformName("PakWheels Clone"), version("1.0"), baseURL("www.pakwheels.pk"),
+          listingCount(0), userCount(0), reviewCount(0) {
+        for (int i = 0; i < MAX_LISTINGS; i++) listings[i] = nullptr;
+        for (int i = 0; i < MAX_USERS; i++)    users[i]    = nullptr;
+    }
+
+    // Parameterized constructor
+    Marketplace(const string& name, const string& ver, const string& url)
+        : platformName(name), version(ver), baseURL(url),
+          listingCount(0), userCount(0), reviewCount(0) {
+        for (int i = 0; i < MAX_LISTINGS; i++) listings[i] = nullptr;
+        for (int i = 0; i < MAX_USERS; i++)    users[i]    = nullptr;
+    }
+
+    ~Marketplace() {
+        for (int i = 0; i < listingCount; i++) delete listings[i]; // COMPOSITION
+
+    }
+
+    // ── User Management 
+    void registerUser(User* u) {
+        if (userCount < MAX_USERS) {
+            users[userCount++] = u;
+            cout << "[OK] Registered: " << u->getName() << " (" << u->getRole() << ")\n";
+        }
+    }
+
+    User* findUser(const string& id) const {
+        for (int i = 0; i < userCount; i++)
+            if (users[i]->getUserID() == id) return users[i];
+        return nullptr;
+    }
+
+    // ── Listing Management 
+    bool addListing(Listing* l) {
+        if (listingCount >= MAX_LISTINGS) {
+            cout << "[ERR] Marketplace full.\n"; return false;
+        }
+        listings[listingCount++] = l;
+        User* u = findUser(l->getSellerID());
+        if (u && u->getRole() == "Seller")
+            dynamic_cast<Seller*>(u)->incrementListings();
+        cout << "[OK] Listing " << l->getListingID() << " added (pending approval).\n";
+        return true;
+    }
+
+    bool deleteListing(const string& id, const string& requesterID) {
+        for (int i = 0; i < listingCount; i++) {
+            if (listings[i]->getListingID() == id) {
+                User* u = findUser(requesterID);
+                if (!u) { cout << "[ERR] Unknown requester.\n"; return false; }
+                bool isSeller = (listings[i]->getSellerID() == requesterID);
+                bool isAdmin  = (u->getRole() == "Admin");
+                if (!isSeller && !isAdmin) {
+                    cout << "[DENIED] Not authorized.\n"; return false;
+                }
+                User* seller = findUser(listings[i]->getSellerID());
+                if (seller && seller->getRole() == "Seller")
+                    dynamic_cast<Seller*>(seller)->decrementListings();
+                delete listings[i];
+                for (int j = i; j < listingCount - 1; j++)
+                    listings[j] = listings[j + 1];
+                listings[--listingCount] = nullptr;
+                cout << "[OK] Listing " << id << " deleted.\n";
+                return true;
+            }
+        }
+        cout << "[ERR] Listing not found.\n";
+        return false;
+    }
+
+    bool updateListingPrice(const string& id, double newPrice, const string& sellerID) {
+        for (int i = 0; i < listingCount; i++) {
+            if (listings[i]->getListingID() == id &&
+                listings[i]->getSellerID() == sellerID) {
+                listings[i]->setAskingPrice(newPrice);
+                cout << "[OK] Price updated to Rs " << newPrice << "\n";
+                return true;
+            }
+        }
+        cout << "[ERR] Not found or unauthorized.\n";
+        return false;
+    }
+
+    // ── Admin Approval 
+    void approveListing(const string& id, Admin& admin) {
+        for (int i = 0; i < listingCount; i++) {
+            if (listings[i]->getListingID() == id) {
+                listings[i]->approve();
+                admin.handleCase();
+                return;
+            }
+        }
+        cout << "[ERR] Listing not found.\n";
+    }
+
+    void rejectListing(const string& id, const char* reason, Admin& admin) {
+        for (int i = 0; i < listingCount; i++) {
+            if (listings[i]->getListingID() == id) {
+                listings[i]->reject(reason);
+                admin.handleCase();
+                return;
+            }
+        }
+        cout << "[ERR] Listing not found.\n";
+    }
+
+    // ── Search & Filter 
+    // Polymorphism: matchesFilter() calls the correct Vehicle subclass override
+    void searchListings(const string& key, const string& value) const {
+        totalSearches++;
+        cout << "\n=== Search: " << key << " = " << value << " ===\n";
+        int found = 0;
+        for (int i = 0; i < listingCount; i++) {
+            if (listings[i]->isApproved() && listings[i]->matchesFilter(key, value)) {
+                listings[i]->displayDetails();
+                found++;
+            }
+        }
+        if (found == 0) cout << "No results found.\n";
+        else cout << found << " result(s) found.\n";
+    }
+
+    void filterByMaxPrice(double maxPrice) const {
+        totalSearches++;
+        cout << "\n=== Filter: Price <= Rs " << maxPrice << " ===\n";
+        for (int i = 0; i < listingCount; i++)
+            if (listings[i]->isApproved() && listings[i]->getAskingPrice() <= maxPrice)
+                listings[i]->displayDetails();
+    }
+
+    void filterByYearRange(int minYear, int maxYear) const {
+        totalSearches++;
+        cout << "\n=== Filter: Year " << minYear << " - " << maxYear << " ===\n";
+        for (int i = 0; i < listingCount; i++) {
+            if (!listings[i]->isApproved()) continue;
+            Vehicle* v = listings[i]->getVehicle();
+            if (v && v->getYear() >= minYear && v->getYear() <= maxYear)
+                listings[i]->displayDetails();
+        }
+    }
+
+    // ── Messaging 
+    void sendMessage(const string& fromID, const string& toID,
+                     const string& content, const string& timestamp) {
+        User* sender   = findUser(fromID);
+        User* receiver = findUser(toID);
+        if (!sender || !receiver) { cout << "[ERR] User not found.\n"; return; }
+        Message m(fromID, toID, content, timestamp);
+        receiver->receiveMessage(m);
+        sender->sendMessage(receiver->getName(), content);
+    }
+
+    // ── Reviews 
+    void addReview(const Review& r) {
+        if (reviewCount < MAX_REVIEWS) {
+            reviews[reviewCount++] = r;
+            User* u = findUser(r.getSellerID());
+            if (u && u->getRole() == "Seller")
+                dynamic_cast<Seller*>(u)->updateRating(r.getRating());
+            cout << "[OK] Review added.\n";
+        }
+    }
+
+    // ── Display 
+    void displayAllListings() const {
+        cout << "\n========== ALL LISTINGS (" << listingCount << ") ==========\n";
+        for (int i = 0; i < listingCount; i++) listings[i]->displayDetails();
+    }
+
+    void displayApprovedListings() const {
+        cout << "\n========== APPROVED LISTINGS ==========\n";
+        for (int i = 0; i < listingCount; i++)
+            if (listings[i]->isApproved()) listings[i]->displayDetails();
+    }
+
+    void displayStats() const {
+        cout << "\n========== PLATFORM STATS ==========\n";
+        cout << "Platform      : " << platformName << " v" << version << "\n";
+        cout << "Total Users   : " << User::getTotalUsers()         << "\n";
+        cout << "Total Vehicles: " << Vehicle::getTotalVehicles()   << "\n";
+        cout << "Total Listings: " << Listing::getTotalListings()   << "\n";
+        cout << "Total Searches: " << totalSearches                 << "\n";
+        cout << "Platform Fee  : Rs " << Listing::getPlatformFee() << " per listing\n";
+    }
+
+    static int getTotalSearches() { return totalSearches; }
+};
+
+int Marketplace::totalSearches = 0;
+
+
+void section(const string& title) {
+    cout << "\n╔══════════════════════════════════════╗\n";
+    cout << "║  " << title << "\n";
+    cout << "╚══════════════════════════════════════╝\n";
+}
+
+int main() {
+
+    // 1. Marketplace 
+    section("1. MARKETPLACE CREATION");
+    Marketplace market("PakWheels Clone", "2.0", "www.pakwheels-clone.pk");
+
+    // 2. Users 
+    section("2. USER REGISTRATION");
+
+    Buyer* ali = new Buyer("B001", "Ali Khan", "ali@mail.com",
+                           "0300-1111111", "pass123", 2500000, "Karachi");
+
+    Buyer* sara = new Buyer();   
+    sara->setName("Sara Ahmed");
+    sara->setMaxBudget(1200000);
+
+    Seller* rashid = new Seller("S001", "Rashid Motors", "rashid@mail.com",
+                                "0321-9999999", "securePass",
+                                "Rashid Auto Gallery", "42101-1234567-1");
+
+    Seller* zubair = new Seller("S002", "Zubair Bikes", "zubair@mail.com",
+                                "0333-7777777", "bikePass",
+                                "Zubair Two-Wheeler Hub", "42201-9876543-2");
+
+    Admin* superAdmin = new Admin("A001", "System Admin", "admin@pakwheels.pk",
+                                  "0311-0000000", "adminRoot",
+                                  "SuperAdmin", "IT", "ADMIN-2026");
+
+    market.registerUser(ali);
+    market.registerUser(sara);
+    market.registerUser(rashid);
+    market.registerUser(zubair);
+    market.registerUser(superAdmin);
+
+    // 3. Vehicles (Polymorphism)
+    section("3. VEHICLE CREATION (Polymorphism)");
+
+    Car* civic = new Car("Honda", "Civic", 2022, 35000,
+                         "Petrol", "Metallic Grey",
+                         4, "Automatic", "Sedan", 1500, true);
+
+    Car* cultus = new Car("Suzuki", "Cultus", 2020, 50000,
+                          "Petrol", "White",
+                          5, "Manual", "Hatchback", 1000, true);
+
+    Car* fortuner = new Car("Toyota", "Fortuner", 2023, 15000,
+                            "Diesel", "Pearl White",
+                            4, "Automatic", "SUV", 2700, true);
+
+    Bike* cd70 = new Bike("Honda", "CD-70", 2021, 20000,
+                          "Petrol", "Black",
+                          70, "Standard", false, 4, "Air");
+
+    Bike* ybr125 = new Bike("Yamaha", "YBR-125G", 2023, 5000,
+                            "Petrol", "Red",
+                            125, "Standard", true, 5, "Air");
+
+    Truck* shehzore = new Truck("Isuzu", "Shehzore", 2019, 80000,
+                                "Diesel", "Blue",
+                                1.5, 2, "Mini", false, 2.5);
+
+    // Polymorphic dispatch via base pointer array
+    cout << "\n--- Vehicle Details via base Vehicle* array (virtual dispatch) ---\n";
+    Vehicle* vehicles[] = { civic, cultus, fortuner, cd70, ybr125, shehzore };
+    for (int i = 0; i < 6; i++)
+        vehicles[i]->displayDetails(); // calls Car/Bike/Truck override
+
+    // 4. Listings
+    section("4. LISTINGS (Composition + Aggregation)");
+
+    Location karachi("Karachi", "Sindh");
+    Location lahore("Lahore", "Punjab");
+    Location rwp("Rawalpindi", "Punjab");
+
+
+    Listing* l1 = new Listing("L001", 3200000,
+                               "Low mileage, full genuine, one owner.",
+                               "S001", civic, karachi);
+    Listing* l2 = new Listing("L002", 1700000,
+                               "Company maintained, all documents clear.",
+                               "S001", cultus, karachi);
+    Listing* l3 = new Listing("L003", 115000,
+                               "Engine overhaul done. Good condition.",
+                               "S002", cd70, lahore);
+    Listing* l4 = new Listing("L004", 320000,
+                               "Brand new, delivery available.",
+                               "S002", ybr125, rwp);
+    Listing* l5 = new Listing("L005", 9500000,
+                               "Top trim, low km, 4x4.",
+                               "S001", fortuner, karachi);
+    Listing* l6 = new Listing("L006", 2800000,
+                               "Truck in excellent working condition.",
+                               "S002", shehzore, lahore);
+
+    market.addListing(l1);
+    market.addListing(l2);
+    market.addListing(l3);
+    market.addListing(l4);
+    market.addListing(l5);
+    market.addListing(l6);
+
+    // ── 5. Admin Approval 
+    section("5. ADMIN APPROVAL");
+    market.approveListing("L001", *superAdmin);
+    market.approveListing("L002", *superAdmin);
+    market.approveListing("L003", *superAdmin);
+    market.approveListing("L004", *superAdmin);
+    market.approveListing("L005", *superAdmin);
+    market.rejectListing("L006", "Missing registration documents", *superAdmin);
+
+    // ── 6. Search & Filter 
+    section("6. SEARCH & FILTER");
+    market.searchListings("brand", "Honda");
+    market.searchListings("city", "Karachi");
+    market.filterByMaxPrice(1800000);
+    market.filterByYearRange(2022, 2026);
+
+    //  7. Buyer Features
+    section("7. BUYER FEATURES");
+    ali->saveFavourite("L001");
+    ali->saveFavourite("L005");
+    ali->saveFavourite("L001"); 
+    ali->viewFavourites();
+    ali->removeFavourite("L005");
+    ali->viewFavourites();
+
+    // Friend function usage
+    cout << "\nCan Ali afford L001 (Rs 3,200,000)? "
+         << (canAfford(*ali, 3200000) ? "YES" : "NO") << "\n";
+    cout << "Can Ali afford L004 (Rs 320,000)?   "
+         << (canAfford(*ali, 320000)  ? "YES" : "NO") << "\n";
+
+    // 8. Messaging 
+    section("8. MESSAGING (Buyer -> Seller)");
+    market.sendMessage("B001", "S001",
+                       "Is the Honda Civic still available?", "2026-05-17 10:00");
+    market.sendMessage("B001", "S002",
+                       "Can you bring YBR125 to Karachi?",   "2026-05-17 10:05");
+    rashid->readMessages();
+
+    // 9. Reviews
+    section("9. REVIEWS");
+    Review r1("RV001", "B001", "S001", 5, "Great deal, honest seller!", "2026-05-10", true);
+    Review r2("RV002", "B001", "S002", 4, "Good bike but delivery was late.", "2026-05-12", true);
+    market.addReview(r1);
+    market.addReview(r2);
+    r1.displayDetails();
+    r2.displayDetails();
+
+    // 10. Update & Delete 
+    section("10. UPDATE & DELETE LISTING");
+    market.updateListingPrice("L002", 1650000, "S001");
+    market.deleteListing("L003", "S002");
+
+    //11. Operator Overloading
+    section("11. OPERATOR OVERLOADING");
+
+    // Vehicle > (year comparison)
+    cout << "Fortuner newer than Cultus?  "
+         << (*fortuner > *cultus ? "Yes" : "No") << "\n";
+
+    // Listing < (price comparison)
+    cout << "L002 cheaper than L001?      "
+         << (*l2 < *l1 ? "Yes" : "No") << "\n";
+
+    // Listing + string (description append)
+    Listing enhanced = *l2 + "Negotiable price";
+    cout << "Enhanced desc: " << enhanced.getDescription() << "\n";
+
+    // Location
+    Location k2("Karachi", "Sindh");
+    cout << "karachi == k2?               "
+         << (karachi == k2 ? "Yes" : "No") << "\n";
+
+    // Review
+    cout << "r1 rated higher than r2?     "
+         << (r1 > r2 ? "Yes" : "No") << "\n";
+
+    // 12. Admin Actions
+    section("12. ADMIN ACTIONS");
+    superAdmin->promoteToVerified(*rashid);
+    superAdmin->promoteToVerified(*zubair);
+    superAdmin->displayDetails();
+    rashid->displayDetails();
+
+    // Friend function: CNIC verification
+    cout << "\nVerify Rashid's CNIC: "
+         << (verifyCNIC(*rashid, "42101-1234567-1") ? "MATCH" : "NO MATCH") << "\n";
+
+    // Friend function: Admin code validation
+    cout << "Validate Admin code:  "
+         << (validateAdminCode(*superAdmin, "ADMIN-2026") ? "VALID" : "INVALID") << "\n";
+
+    // 13. Static & Constant Members
+    section("13. STATIC & CONSTANT MEMBERS");
+    cout << "Total Users registered  : " << User::getTotalUsers()          << "\n";
+    cout << "Total Vehicles created  : " << Vehicle::getTotalVehicles()    << "\n";
+    cout << "Total Listings created  : " << Listing::getTotalListings()    << "\n";
+    cout << "Platform Fee (const)    : Rs " << Listing::getPlatformFee()  << "\n";
+    cout << "Total Searches done     : " << Marketplace::getTotalSearches()<< "\n";
+    cout << "Civic annual tax        : Rs " << civic->estimateAnnualTax() << "\n";
+    cout << "YBR125 efficiency rating: " << ybr125->fuelEfficiencyRating() << "/5\n";
+
+    // 14. Final Stats & Listings 
+    section("14. FINAL PLATFORM STATS");
+    market.displayStats();
+    market.displayApprovedListings();
+
+    delete ali;
+    delete sara;
+    delete rashid;
+    delete zubair;
+    delete superAdmin;
+
+    cout << "\n[DONE] Program completed successfully.\n";
+    return 0;
+}
 
