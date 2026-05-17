@@ -23,7 +23,7 @@
 
 This screen maps directly to the `Marketplace` class methods: `searchListings()`, `filterByMaxPrice()`, and the `User` messaging system.
 
-![Home / Listings Page](screen1_home.png)
+![Home / Listings Page](./images/screen1_home.png)
 *Figure 1 — Home page: search, filters, listing cards (`Listing` objects), and messaging panel*
 
 ### C++ Mappings
