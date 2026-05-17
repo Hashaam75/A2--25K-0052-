@@ -45,7 +45,7 @@ This screen maps directly to the `Marketplace` class methods: `searchListings()`
 
 Shows all attributes of the `Car` subclass (`engineCC`, `transmission`, `bodyType`, `doors`, `isAC`), the Seller's verification status, `Location`, and messaging CTA.
 
-![Listing Detail Page](screen2_listing_detail.png)
+![Listing Detail Page](./images/screen2_listing_detail.png)
 *Figure 2 — Listing detail: `Car::displayDetails()`, seller panel, location, and messaging CTA*
 
 ### C++ Mappings
@@ -68,7 +68,7 @@ Shows all attributes of the `Car` subclass (`engineCC`, `transmission`, `bodyTyp
 
 Shows the output of `Marketplace::searchListings("brand", "Honda")` — only approved listings where `Vehicle::matchesFilter()` returns `true` for `brand = Honda`.
 
-![Search Results Page](screen3_search_results.png)
+![Search Results Page](./images/screen3_search_results.png)
 *Figure 3 — Search results: polymorphic `Vehicle*` display, approved/pending guards, pagination*
 
 ### C++ Mappings
@@ -90,7 +90,7 @@ Shows the output of `Marketplace::searchListings("brand", "Honda")` — only app
 
 Shows saved favourites (`L001`, `L005`), the `friend` function `canAfford()` budget check, recent messages sent to sellers, and Buyer-specific attributes: `maxBudget`, `preferredCity`.
 
-![Buyer Dashboard](screen4_buyer_dashboard.png)
+![Buyer Dashboard](./images/screen4_buyer_dashboard.png)
 *Figure 4 — Buyer dashboard: favourites array, `canAfford()` friend function, message inbox*
 
 ### C++ Mappings
@@ -113,7 +113,7 @@ Shows saved favourites (`L001`, `L005`), the `friend` function `canAfford()` bud
 
 Shows all 3 approved listings (`L001`, `L002`, `L005`), unread messages from Ali Khan, rating averaged by `updateRating()`, and the Rs 500 platform fee notice mapping to `PLATFORM_FEE` static const.
 
-![Seller Dashboard](screen5_seller_dashboard.png)
+![Seller Dashboard](./images/screen5_seller_dashboard.png)
 *Figure 5 — Seller dashboard: listings array, unread messages, rating, platform fee notice*
 
 ### C++ Mappings
@@ -136,7 +136,7 @@ Shows all 3 approved listings (`L001`, `L002`, `L005`), unread messages from Ali
 
 Shows the approval queue, user management with ban/promote actions, `friend` function results for CNIC and admin code verification, and platform-wide statistics.
 
-![Admin Panel](screen6_admin_panel.png)
+![Admin Panel](./images/screen6_admin_panel.png)
 *Figure 6 — Admin panel: approval queue, user management table, friend function results, platform stats*
 
 ### C++ Mappings
@@ -159,7 +159,7 @@ Shows the approval queue, user management with ban/promote actions, `friend` fun
 
 All form fields map directly to `Car` constructor parameters (`brand`, `model`, `year`, `mileage`, `fuelType`, `color`, `numDoors`, `transmission`, `bodyType`, `engineCC`, `isAC`) and `Listing` constructor parameters (`listingID`, `askingPrice`, `description`, `sellerID`, `vehicle`, `location`).
 
-![Post New Listing](screen7_post_listing.png)
+![Post New Listing](./images/screen7_post_listing.png)
 *Figure 7 — Post listing form: all fields map to `Car` and `Listing` constructor parameters*
 
 ### C++ Mappings
@@ -182,7 +182,7 @@ All form fields map directly to `Car` constructor parameters (`brand`, `model`, 
 
 > Full class hierarchy showing all **13 classes** and **4 interfaces**.
 
-![UML Class Diagram](screen8_uml_diagram.png)
+![UML Class Diagram](./images/screen8_uml_diagram.png)
 *Figure 8 — Complete UML: inheritance, interface implementation, composition, and aggregation*
 
 ### Relationship Types
